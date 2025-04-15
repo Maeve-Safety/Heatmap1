@@ -1,0 +1,56 @@
+{
+  "DMR North Central": {
+    "Fitzgibbon St": "very high",
+    "Store Street": "very high",
+    "Mountjoy": "very high",
+    "Bridewell": "very high"
+  },
+  "DMR South Central": {
+    "Kilmainham": "very high",
+    "Kevin St": "very high",
+    "Pearse St": "very high",
+    "Irishtown": "high",
+    "Donnybrook": "high"
+  },
+  "DMR North": {
+    "Raheny": "low",
+    "Clontarf": "average",
+    "Coolock": "average",
+    "Santry": "average",
+    "Balymun": "very high",
+    "Airport": "average",
+    "Swords": "average",
+    "Lusk": "average",
+    "Skerries": "very low",
+    "Balbriggan": "high",
+    "Garristown": "very low",
+    "Malahide": "very low",
+    "Howth": "low"
+  },
+  "DMR West": {
+    "Finglas": "average",
+    "Blanchardstown": "average",
+    "Lucan": "average",
+    "Cabra": "average",
+    "Ronanstown": "very high",
+    "Ballyfermot": "high",
+    "Clondalkin": "very high",
+    "Rathcoole": "very high"
+  },
+  "DMR South": {
+    "Tallaght": "very high",
+    "Rathfarnham": "very low",
+    "Terenure": "low",
+    "Crumlin": "average",
+    "Sundrive Road": "high",
+    "Rathmine": "average"
+  },
+  "DMR East": {
+    "Shankill": "low",
+    "Stepaside": "low",
+    "Dundrum": "average",
+    "Blackrock": "low",
+    "Cabinteely": "low",
+    "Dun Laoghaire": "average"
+  }
+}
