@@ -376,8 +376,11 @@ function renderDistricts() {
                 }
             });
             
-            // Add tooltip
-            polygon.bindTooltip(`${matchedDistrict || name} (${crimeLevel})`, { sticky: true });
+            // Add tooltip with district and division info
+            const districtName = feature.properties?.District_N || "Unknown District";
+            const divisionName = feature.properties?.Division || "Unknown Division";
+            polygon.bindTooltip(`${districtName} / ${divisionName} (${crimeLevel})`, { sticky: true });
+
             
             // Add to map
             polygon.addTo(map);
