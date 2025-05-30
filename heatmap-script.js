@@ -116,21 +116,15 @@ function handleError(error, fallbackMessage = "An unknown error occurred", showA
         alert(`Error: ${message}`);
     }
     
-    // You could also log to a server or display in UI
     const errorContainer = document.createElement('div');
     errorContainer.className = 'error-notification';
     errorContainer.innerHTML = `<strong>Error:</strong> ${message}`;
     document.body.appendChild(errorContainer);
-    
-    // Automatically remove after 5 seconds
+    s
     setTimeout(() => {
         errorContainer.remove();
     }, 5000);
 }
-
-/**
- * Safe string includes helper
- */
 function safeIncludes(str, search) {
     if (!str || !search) return false;
     return str.toString().toLowerCase().includes(search.toString().toLowerCase());
@@ -138,10 +132,11 @@ function safeIncludes(str, search) {
 
 // Make selectSubdistrict available globally
 window.selectSubdistrict = selectSubdistrict;/**
- * Update the data panel with district info
- * @param {Object} feature - The GeoJSON feature for the selected district
+
+ * @param {Object} feature 
  */
 function updateDataPanel(feature) {
+    console.log('updateDataPanel called with feature:', feature);
     if (!selectedDistrict) {
         dataContent.innerHTML = `
             <h2 class="data-title">
@@ -159,11 +154,11 @@ function updateDataPanel(feature) {
         return;
     }
     
-    // Get crime level and other data
+    // crime level 
     let crimeLevel = feature?.properties?.crimeLevel || 'average';
     
-    // Check for manual override
-    for (const manualDistrict in manualDistrictOverrides) {
+    // look for for manual override
+    /*for (const manualDistrict in manualDistrictOverrides) {
         if (normalizeDistrictName(manualDistrict) === normalizeDistrictName(selectedDistrict) ||
             normalizeDistrictName(selectedDistrict).includes(normalizeDistrictName(manualDistrict)) ||
             normalizeDistrictName(manualDistrict).includes(normalizeDistrictName(selectedDistrict))) {
@@ -171,15 +166,12 @@ function updateDataPanel(feature) {
             break;
         }
     }
-    
+*/    
+console.log('crime level:', crimeLevel);
     const stations = feature?.properties?.stations || [];
     const stationLevels = feature?.properties?.stationLevels || {};
     const matchedDistrict = feature?.properties?.matchedDistrict || selectedDistrict;
-    
-    // Find nearest Garda stations
     const nearbyStations = findNearestGardaStations(selectedDistrict);
-    
-    // Create the content for Garda stations in this district
     let stationsListHTML = '';
     if (stations && stations.length > 0) {
         stationsListHTML = `
@@ -187,9 +179,9 @@ function updateDataPanel(feature) {
                 <h3 class="section-subtitle">Garda Stations in this District</h3>
                 <ul style="margin-left: 20px;">
                     ${stations.map(stationName => {
-                        let stationLevel = heatData[matchedDistrict]?.[stationName] || 'average';
-                        
-                        // Check for manual override
+                        let stationLevel = heatData[matchedDistrict]?.[stationName] || null;
+                        console.log(`Station: ${stationName}, Level: ${stationLevel}`);
+                        // look for manual override
                         for (const manualStation in manualDistrictOverrides) {
                             if (normalizeDistrictName(manualStation) === normalizeDistrictName(stationName) ||
                                 normalizeDistrictName(stationName).includes(normalizeDistrictName(manualStation)) ||
@@ -211,7 +203,7 @@ function updateDataPanel(feature) {
         `;
     }
     
-    // Generate crime description based on level
+    // crime description based on level
     let crimeDescription = '';
     switch (crimeLevel) {
         case 'very high':
@@ -232,8 +224,9 @@ function updateDataPanel(feature) {
         default:
             crimeDescription = `Crime data is not specifically available for ${selectedDistrict}.`;
     }
+    console.log(`Crime level for ${selectedDistrict}: ${crimeLevel}`);
     
-    // Nearest stations HTML
+    // close stations HTML
     let nearestStationsHTML = '';
     if (nearbyStations.length > 0 && showStationsCheckbox.checked) {
         nearestStationsHTML = `
@@ -245,7 +238,7 @@ function updateDataPanel(feature) {
                         let stationLevel = 'average';
                         let stationDistrict = '';
                         
-                        // Check for manual override first
+                        // look for manual override first
                         for (const manualStation in manualDistrictOverrides) {
                             if (normalizeDistrictName(manualStation) === normalizeDistrictName(stationName) ||
                                 normalizeDistrictName(stationName).includes(normalizeDistrictName(manualStation)) ||
@@ -255,7 +248,7 @@ function updateDataPanel(feature) {
                             }
                         }
                         
-                        // If no override, find this station's crime level and district
+                        //  no override? find station crime level and district
                         if (stationLevel === 'average' && heatData) {
                             for (const district in heatData) {
                                 if (heatData[district][stationName]) {
@@ -263,7 +256,7 @@ function updateDataPanel(feature) {
                                     stationDistrict = district;
                                     break;
                                 }
-                                // Try partial matches
+                                // loko for partial matches
                                 for (const heatStationName in heatData[district]) {
                                     if (safeIncludes(stationName, heatStationName) || safeIncludes(heatStationName, stationName)) {
                                         stationLevel = heatData[district][heatStationName];
@@ -298,7 +291,7 @@ function updateDataPanel(feature) {
         `;
     }
     
-    // Update the data panel content
+    // update the data panel content
     dataContent.innerHTML = `
         <h2 class="data-title">
             ${selectedDistrict}
@@ -325,15 +318,14 @@ function updateDataPanel(feature) {
         ${nearestStationsHTML}
     `;
     
-    // Add event listener to the close button
     document.getElementById('close-district').addEventListener('click', function() {
         resetMap();
     });
 }/**
- * Find nearest Garda stations to a district
- * @param {string} districtName - The name of the district
- * @param {number} limit - Maximum number of stations to return
- * @returns {Array} - Array of stations with distance info
+ * look for the nearest Garda stations to a district
+ * @param {string} districtName 
+ * @param {number} limit 
+ * @returns {Array} 
  */
 function findNearestGardaStations(districtName, limit = 3) {
     if (!districtBoundaries || !gardaStations) return [];
@@ -345,14 +337,12 @@ function findNearestGardaStations(districtName, limit = 3) {
     );
     
     if (!district || !district.geometry) return [];
-    
-    // Get the center of the district polygon
-    // Handling different polygon structures
+   
     let coords = [];
     if (district.geometry.type === 'Polygon') {
         coords = district.geometry.coordinates[0];
     } else if (district.geometry.type === 'MultiPolygon') {
-        // Use the largest polygon as representative
+
         let maxSize = 0;
         let largestPolygon = [];
         
@@ -370,8 +360,6 @@ function findNearestGardaStations(districtName, limit = 3) {
     }
     
     if (!coords || coords.length === 0) return [];
-    
-    // Calculate centroid
     let sumLat = 0, sumLng = 0;
     coords.forEach(coord => {
         sumLng += coord[0];
@@ -381,7 +369,7 @@ function findNearestGardaStations(districtName, limit = 3) {
     const centerLat = sumLat / coords.length;
     const centerLng = sumLng / coords.length;
     
-    // Calculate distance from this point to each Garda station
+    //  distance to Garda station
     const stationsWithDistances = [];
     
     gardaStations.features.forEach(station => {
@@ -390,27 +378,29 @@ function findNearestGardaStations(districtName, limit = 3) {
         const stationLng = station.geometry.coordinates[0];
         const stationLat = station.geometry.coordinates[1];
         
-        // Simple distance calculation
+        //  distance calculation (Haversine formula)
+        // Note: This is a simplified version, not accounting for Earth's curvature
+        // and using a rough approximation for latitude/longitude conversion
+        // 1 degree of latitude is approximately 111 km
+        // 1 degree of longitude is approximately 111 km * cos(latitude) (took some of this code from programming group project assignment tbh)
         const distance = Math.sqrt(
             Math.pow(stationLat - centerLat, 2) + 
             Math.pow(stationLng - centerLng, 2)
-        ) * 111; // Rough conversion to kilometers
+        ) * 111; 
         
         stationsWithDistances.push({
             ...station,
-            distance: Math.round(distance * 10) / 10 // Round to 1 decimal place
+            distance: Math.round(distance * 10) / 10 
         });
     });
     
-    // Sort by distance and return the nearest ones
     return stationsWithDistances
         .sort((a, b) => a.distance - b.distance)
         .slice(0, limit);
-}// heatmap-script.js - Choropleth Map Implementation with Manual District Overrides
-
-// Global variables
+}
+// global variables
 let map;
-let districtBoundaries; // District polygons
+let districtBoundaries; 
 let gardaStations;
 let heatData;
 let selectedDistrict = null;
@@ -420,7 +410,7 @@ let subdistrictLayers = {};
 let gardaMarkers = [];
 let infoControl;
 
-// Define color scale for choropleth
+// color scale for choropleth
 const crimeColorScale = {
     'very low': '#4ade80',   // Green
     'low': '#a3e635',        // Light green
@@ -429,7 +419,7 @@ const crimeColorScale = {
     'very high': '#ef4444'   // Red
 };
 
-// Numerical values for each crime level (for legend)
+// crime levels for legend (based on cso data set that is not currenyl added)
 const crimeLevelValues = {
     'very low': '0-20',
     'low': '21-40',
@@ -457,7 +447,7 @@ const manualDistrictOverrides = {
     "Donnybrook": "average",
     "Terenure": "low",
     "Ballymun": "average",
-    "Crumlin": "high" // Setting as high per "average/high" in the request
+    "Crumlin": "high" 
 };
 
 // DOM elements
@@ -469,32 +459,28 @@ const currentDistrictDisplay = document.getElementById('current-district');
 const dataContent = document.getElementById('data-content');
 const homeButton = document.getElementById('home-button');
 
-/**
- * Initialize the application when DOM is loaded
- */
+// wait for dom to load
 document.addEventListener('DOMContentLoaded', function() {
     initializeMap();
     loadData();
     setupEventListeners();
 });
 
-/**
- * Initialize Leaflet map with choropleth support
- */
+//initalize leaflet map
 function initializeMap() {
     try {
         map = L.map('map-container', {
-            center: [53.3498, -6.2603], // Dublin center
+            center: [53.3498, -6.2603], // this shows you Dublin city center
             zoom: 11,
             zoomControl: false
         });
         
-        // Add zoom control to top right
+        // zoom controls
         L.control.zoom({
             position: 'topright'
         }).addTo(map);
         
-        // Add base layers (Map/Satellite)
+        // map and satalite base laters
         const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
@@ -502,8 +488,6 @@ function initializeMap() {
         const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
         });
-        
-        // Add layer control
         const layerControl = L.control.layers({
             "Map View": osmLayer,
             "Satellite View": satelliteLayer
@@ -511,7 +495,6 @@ function initializeMap() {
             position: 'topleft'
         }).addTo(map);
         
-        // Add info control to show hover information
         infoControl = L.control({ position: 'topright' });
         infoControl.onAdd = function() {
             this._div = L.DomUtil.create('div', 'map-info-control');
@@ -523,17 +506,13 @@ function initializeMap() {
                 (props ? `<b>${props.matchedDistrict || props.Name || props.District_N}</b><br/>${props.crimeLevel || 'average'} crime` : 'Hover over a district');
         };
         infoControl.addTo(map);
-        
-        // Add choropleth legend
         addChoroplethLegend();
     } catch (error) {
         handleError(error, "Failed to initialize map");
     }
 }
 
-/**
- * Add choropleth legend to the map
- */
+//legend for choropleth map
 function addChoroplethLegend() {
     const legend = L.control({ position: 'bottomright' });
     
@@ -556,11 +535,8 @@ function addChoroplethLegend() {
     legend.addTo(map);
 }
 
-/**
- * Style function for choropleth districts
- */
+
 function getDistrictStyle(feature) {
-    // Using the crimeLevel property we set in processHeatData
     const crimeLevel = feature.properties.crimeLevel || 'average';
     return {
         fillColor: crimeColorScale[crimeLevel],
@@ -572,9 +548,7 @@ function getDistrictStyle(feature) {
     };
 }
 
-/**
- * Highlight feature on hover
- */
+//hover
 function highlightFeature(e) {
     const layer = e.target;
     
@@ -592,32 +566,24 @@ function highlightFeature(e) {
     }
 }
 
-/**
- * Reset highlight on mouseout
- */
+
 function resetHighlight(e) {
     const layer = e.target;
-    // Get the appropriate property name based on your GeoJSON structure
     const layerName = layer.feature.properties.Name || 
                        layer.feature.properties.District_N || 
                        layer.feature.properties.matchedDistrict;
-    
-    // Try to find the stored layer reference first
     const districtLayer = districtLayers[layerName];
     
     if (districtLayer) {
         districtLayer.setStyle(getDistrictStyle(layer.feature));
     } else {
-        // Fallback if layer reference isn't stored
         layer.setStyle(getDistrictStyle(layer.feature));
     }
     
     infoControl.update();
 }
 
-/**
- * Zoom to feature on click
- */
+//zoom
 function zoomToFeature(e) {
     const feature = e.target.feature;
     const districtName = feature.properties.matchedDistrict || 
@@ -626,9 +592,7 @@ function zoomToFeature(e) {
     selectDistrict(districtName);
 }
 
-/**
- * Add event listeners to district features
- */
+
 function onEachDistrictFeature(feature, layer) {
     layer.on({
         mouseover: highlightFeature,
@@ -637,40 +601,32 @@ function onEachDistrictFeature(feature, layer) {
     });
 }
 
-/**
- * Load all data required for the application
- */
+
 async function loadData() {
     try {
-        // Clear loading state
+        // clear tje loading state
         districtsList.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
         
-        // Load all data files
+        // load data files
         const [neighborhoodsResponse, gardaResponse, heatResponse] = await Promise.all([
             fetch('district_shape.geojson'),
             fetch('garda_station.geojson'),
             fetch('garda_heat.json')
         ]);
-
-        // Check all responses
         if (!neighborhoodsResponse.ok || !gardaResponse.ok || !heatResponse.ok) {
             throw new Error("Failed to load one or more data files");
         }
 
-        // Parse all data
+        // parse data
         [districtBoundaries, gardaStations, heatData] = await Promise.all([
             neighborhoodsResponse.json(),
             gardaResponse.json(),
             heatResponse.json()
         ]);
 
-        // Process heat data with neighborhood data
+       
         processHeatData();
-        
-        // Apply manual overrides
         applyManualOverrides();
-        
-        // Then render
         renderDistricts();
         renderGardaStations();
     } catch (error) {
@@ -678,9 +634,9 @@ async function loadData() {
     }
 }
 
-/**
- * Helper function to normalize district names for comparison
- */
+
+ // normalize district names to help compare them
+
 function normalizeDistrictName(name) {
     return name.toLowerCase()
         .replace(/street/g, 'st')
@@ -689,9 +645,9 @@ function normalizeDistrictName(name) {
         .replace(/\s+/g, '');
 }
 
-/**
- * Apply manual district overrides
- */
+
+ // Apply manual district overrides for selected stations (to get them to be the right oclor)
+ 
 function applyManualOverrides() {
     console.log("Applying manual district overrides...");
     
@@ -700,7 +656,7 @@ function applyManualOverrides() {
         districtBoundaries.features.forEach(feature => {
             if (!feature.properties) return;
             
-            // Get district/station name
+            // Get the district name from properties
             const name = feature.properties.Name || 
                         feature.properties.Station ||
                         feature.properties.District_N || "";
@@ -709,13 +665,13 @@ function applyManualOverrides() {
             
             const normalizedName = normalizeDistrictName(name);
             
-            // Check if this district is in our manual override list
+            // check if its in manual override list
             for (const manualDistrict in manualDistrictOverrides) {
                 if (normalizeDistrictName(manualDistrict) === normalizedName ||
                     normalizedName.includes(normalizeDistrictName(manualDistrict)) ||
                     normalizeDistrictName(manualDistrict).includes(normalizedName)) {
                     
-                    // Override the crime level
+                    // override the crime level if on list of dublin area
                     feature.properties.crimeLevel = manualDistrictOverrides[manualDistrict];
                     console.log(`Updated district ${name} to ${manualDistrictOverrides[manualDistrict]}`);
                     break;
@@ -724,19 +680,19 @@ function applyManualOverrides() {
         });
     }
     
-    // Also update heat data
+    
     if (heatData) {
         for (const district in heatData) {
             for (const stationName in heatData[district]) {
                 const normalizedName = normalizeDistrictName(stationName);
                 
-                // Check if this station is in our manual override list
+                // see if station is in manual override list
                 for (const manualStation in manualDistrictOverrides) {
                     if (normalizeDistrictName(manualStation) === normalizedName ||
                         normalizedName.includes(normalizeDistrictName(manualStation)) ||
                         normalizeDistrictName(manualStation).includes(normalizedName)) {
                         
-                        // Override the crime level
+                        // override the crime level
                         heatData[district][stationName] = manualDistrictOverrides[manualStation];
                         console.log(`Updated station ${stationName} to ${manualDistrictOverrides[manualStation]}`);
                         break;
@@ -747,10 +703,9 @@ function applyManualOverrides() {
     }
 }
 
-/**
- * Process heat data with neighborhood data
- * This function assigns crime levels to each district polygon
- */
+
+ // assign crime levels to each district polygon
+
 function processHeatData() {
     if (!districtBoundaries || !heatData) {
         console.error("Missing data for heat processing");
@@ -765,7 +720,7 @@ function processHeatData() {
         'very high': 5
     };
 
-    // Helper to normalize strings for matching
+    // helps with strings for matching
     function normalize(str) {
         return str ? str.toLowerCase().replace(/[^a-z]/g, '') : '';
     }
@@ -775,7 +730,7 @@ function processHeatData() {
         const normName = normalize(name);
         let matchedDistrict = null;
 
-        // Try to match district names
+        // match the names of districts
         for (const heatDistrict in heatData) {
             if (normalize(heatDistrict) === normName ||
                 normalize(heatDistrict).includes(normName) ||
@@ -791,7 +746,7 @@ function processHeatData() {
             return;
         }
 
-        // Calculate average crime level for matched district
+        // calculate the average crime level for matched district
         const stations = heatData[matchedDistrict];
         let total = 0, count = 0;
         for (const station in stations) {
@@ -815,7 +770,7 @@ function processHeatData() {
         feature.properties.crimeLevel = crimeLevel;
         feature.properties.matchedDistrict = matchedDistrict;
         
-        // Store the stations for this district
+        // store the stations for this district
         feature.properties.stations = Object.keys(stations);
         feature.properties.stationLevels = stations;
     });
@@ -823,11 +778,11 @@ function processHeatData() {
 
 /**
  * Calculate the average crime level for a district
- * @param {string} district - The district name
- * @returns {string} The crime level classification
+ * @param {string} district - district name
+ * @returns {string} crime level number
  */
 function calculateDistrictCrimeLevel(district) {
-    // Check manual overrides first
+    // check to see if there are manual overrides first
     for (const manualDistrict in manualDistrictOverrides) {
         if (normalizeDistrictName(manualDistrict) === normalizeDistrictName(district) ||
             normalizeDistrictName(district).includes(normalizeDistrictName(manualDistrict)) ||
@@ -836,7 +791,7 @@ function calculateDistrictCrimeLevel(district) {
         }
     }
     
-    // If district doesn't exist in heatData, return 'average'
+    // if no heat data for this district, return average
     if (!heatData[district]) {
         return 'average';
     }
@@ -873,11 +828,8 @@ function calculateDistrictCrimeLevel(district) {
     return crimeLevel;
 }
 
-/**
- * Render districts as choropleth on the map and in the sidebar
- */
+
 function renderDistricts() {
-    // Clear loading state
     districtsList.innerHTML = '';
     
     if (!heatData || Object.keys(heatData).length === 0) {
@@ -885,26 +837,26 @@ function renderDistricts() {
         return;
     }
     
-    // Add districts to the list from heatData
+    // add districts to the list from heat_data.json
     const sortedDistricts = Object.keys(heatData).sort();
     
     sortedDistricts.forEach(district => {
         const div = document.createElement('div');
         div.className = 'district-item';
         
-        // Create the name element
+     
         const nameSpan = document.createElement('span');
         nameSpan.textContent = district;
         
-        // Calculate crime level for the district
+        // find level for the district (not actually doing anything right now cuz I didn't add enough data... but later ... maybe)
         const crimeLevel = calculateDistrictCrimeLevel(district);
         
-        // Create a color indicator based on crime level
+        // colour based on crime level
         const colorIndicator = document.createElement('span');
         colorIndicator.className = 'crime-level-indicator';
         colorIndicator.style.backgroundColor = crimeColorScale[crimeLevel];
         
-        // Add elements to the div
+       
         div.appendChild(nameSpan);
         div.appendChild(colorIndicator);
         
@@ -912,7 +864,7 @@ function renderDistricts() {
         districtsList.appendChild(div);
     });
     
-    // Add choropleth districts to the map
+    // put districts on map
     if (districtBoundaries && districtBoundaries.features.length > 0) {
         // Add district polygons to the map with styling
         const districtsLayer = L.geoJSON(districtBoundaries, {
@@ -920,15 +872,14 @@ function renderDistricts() {
             onEachFeature: onEachDistrictFeature
         }).addTo(map);
         
-        // Store references to all district layers for selection highlighting
+        
         districtBoundaries.features.forEach(feature => {
-            // Get the appropriate name property
             const name = feature.properties.Name || 
                          feature.properties.District_N || 
                          feature.properties.matchedDistrict;
                          
             if (name) {
-                // Find the corresponding layer
+                //look for right layer
                 const layers = districtsLayer.getLayers();
                 
                 for (let i = 0; i < layers.length; i++) {
@@ -949,11 +900,10 @@ function renderDistricts() {
 }
 
 /**
- * Render subdistricts for a selected district
- * @param {string} district - The district name to render subdistricts for
+ * render the subdistricts for a selected district
+ * @param {string} district 
  */
 function renderSubdistricts(district) {
-    // Clear any existing subdistricts list
     subdistrictsList.innerHTML = '';
     
     if (!heatData || !heatData[district]) {
@@ -968,14 +918,14 @@ function renderSubdistricts(district) {
         const div = document.createElement('div');
         div.className = 'subdistrict-item';
         
-        // Create the name element
+       
         const nameSpan = document.createElement('span');
         nameSpan.textContent = station;
         
-        // Get crime level (check overrides first)
+        // Get crime level 
         let crimeLevel = stations[station];
         
-        // Check for manual override
+        // look for manual override
         for (const manualStation in manualDistrictOverrides) {
             if (normalizeDistrictName(manualStation) === normalizeDistrictName(station) ||
                 normalizeDistrictName(station).includes(normalizeDistrictName(manualStation)) ||
@@ -985,12 +935,11 @@ function renderSubdistricts(district) {
             }
         }
         
-        // Create a color indicator based on crime level
+        // colors based on crime data
         const colorIndicator = document.createElement('span');
         colorIndicator.className = 'crime-level-indicator';
         colorIndicator.style.backgroundColor = crimeColorScale[crimeLevel];
         
-        // Add elements to the div
         div.appendChild(nameSpan);
         div.appendChild(colorIndicator);
         
@@ -999,11 +948,9 @@ function renderSubdistricts(district) {
     });
 }
 
-/**
- * Render Garda stations on the map
- */
+
 function renderGardaStations() {
-    // Clear existing markers
+    // reset existing markers
     gardaMarkers.forEach(marker => marker.remove());
     gardaMarkers = [];
     
@@ -1012,7 +959,7 @@ function renderGardaStations() {
         return;
     }
     
-    // Add Garda station markers
+    // add the Garda station markers
     gardaStations.features.forEach(station => {
         if (!station.geometry || !station.geometry.coordinates) {
             console.warn("Invalid station geometry:", station);
@@ -1020,10 +967,10 @@ function renderGardaStations() {
         }
         
         const stationName = station.properties.Station || "Unnamed Station";
-        let crimeLevel = 'average'; // Default level
+        let crimeLevel = 'average'; 
         let districtName = null;
         
-        // Check for manual override first
+        // look for manual override first (added later cuz I could not get it to work last minute :( ))
         for (const manualStation in manualDistrictOverrides) {
             if (normalizeDistrictName(manualStation) === normalizeDistrictName(stationName) ||
                 normalizeDistrictName(stationName).includes(normalizeDistrictName(manualStation)) ||
@@ -1033,7 +980,7 @@ function renderGardaStations() {
             }
         }
         
-        // If no override, find this station in the heat data
+        // if not manually coloured, find this station in the heat data
         if (crimeLevel === 'average' && heatData) {
             for (const district in heatData) {
                 if (heatData[district][stationName]) {
@@ -1041,7 +988,7 @@ function renderGardaStations() {
                     districtName = district;
                     break;
                 }
-                // Try partial matches
+                // look for partial matches if no full
                 for (const heatStationName in heatData[district]) {
                     if (safeIncludes(stationName, heatStationName) || safeIncludes(heatStationName, stationName)) {
                         crimeLevel = heatData[district][heatStationName];
@@ -1052,7 +999,7 @@ function renderGardaStations() {
             }
         }
         
-        // Create a custom icon with the crime level color
+        // crime level color and icon
         const markerIcon = L.divIcon({
             className: 'custom-div-icon',
             html: `<div style="background-color: ${crimeColorScale[crimeLevel]}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
@@ -1069,7 +1016,7 @@ function renderGardaStations() {
                 }
             );
             
-            // Add tooltip and popup
+            // popup
             marker.bindTooltip(`${stationName} Garda Station (${crimeLevel})`, { direction: 'top', offset: [0, -20] });
             marker.bindPopup(`
                 <div>
@@ -1088,10 +1035,10 @@ function renderGardaStations() {
             marker.addTo(map);
             gardaMarkers.push(marker);
             
-            // Store station marker for future reference
+            // add the station markers for futre
             subdistrictLayers[stationName] = marker;
             
-            // Add district info to station
+            // add district info to station info
             marker.district = districtName;
         } catch (error) {
             console.error(`Error rendering station ${stationName}:`, error);
@@ -1100,34 +1047,34 @@ function renderGardaStations() {
 }
 
 /**
- * Select a district
- * @param {string} name - The name of the district to select
+ * look for district name
+ * @param {string} name 
  */
 function selectDistrict(name) {
-    // Find the feature first to get the matched district name
+   
     const feature = districtBoundaries.features.find(f => 
         f.properties?.matchedDistrict === name || 
         f.properties?.Name === name || 
         f.properties?.District_N === name
     );
     
-    // Use the matched district name if available
+    // Get the matched district name
     const districtName = feature?.properties?.matchedDistrict || name;
     
-    // Reset subdistrict selection if applicable
+    // reset selectef subdistrict if needed
     if (selectedSubdistrict) {
         selectedSubdistrict = null;
     }
     
-    // Update selected state
+    // update status of selcetd district 
     if (selectedDistrict) {
-        // Reset previous selection
+        // reset to before
         const oldLayer = districtLayers[selectedDistrict];
         if (oldLayer) {
             oldLayer.setStyle(getDistrictStyle(oldLayer.feature));
         }
         
-        // Remove selected class from list item
+        // remove the selected class from the item
         document.querySelectorAll('.district-item').forEach(item => {
             const itemText = item.querySelector('span')?.textContent || "";
             if (itemText === selectedDistrict) {
@@ -1138,14 +1085,14 @@ function selectDistrict(name) {
     
     selectedDistrict = districtName;
     
-    // Update UI
+  
     currentDistrictDisplay.textContent = districtName ? `Currently viewing: ${districtName}` : '';
     
-    // Update map
-    const layer = districtLayers[name] || // Try direct match first
-                 districtLayers[districtName] || // Then try matched district name
-                 (feature ? districtLayers[feature.properties.Name] : null) || // Then try feature name
-                 (feature ? districtLayers[feature.properties.District_N] : null); // Then try district_n
+    // update map
+    const layer = districtLayers[name] || 
+                 districtLayers[districtName] || 
+                 (feature ? districtLayers[feature.properties.Name] : null) || 
+                 (feature ? districtLayers[feature.properties.District_N] : null); 
                  
     if (layer) {
         layer.setStyle({
@@ -1155,44 +1102,39 @@ function selectDistrict(name) {
             fillOpacity: 0.7
         });
         
-        // Zoom to district
+        // zoom
         map.fitBounds(layer.getBounds(), { padding: [50, 50] });
     }
     
-    // Update list item
+ 
     document.querySelectorAll('.district-item').forEach(item => {
         const itemText = item.querySelector('span')?.textContent || "";
         if (itemText === districtName) {
             item.classList.add('selected');
-            // Scroll into view if needed
             item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     });
     
-    // Render subdistricts for this district
+
     renderSubdistricts(districtName);
-    
-    // Show district data panel
     document.querySelector('.tab-button[data-tab="data"]').click();
-    
-    // Update data panel
     updateDataPanel(feature);
 }
 
 /**
- * Select a subdistrict (Garda station)
- * @param {string} district - The district name
- * @param {string} station - The station/subdistrict name
+ * Select a subdistrict 
+  @param {string} district 
+  @param {string} station 
  */
 function selectSubdistrict(district, station) {
     selectedSubdistrict = station;
     
-    // Clear selected class from all subdistrict items
+    // clear selected class from the subdistrict 
     document.querySelectorAll('.subdistrict-item').forEach(item => {
         item.classList.remove('selected');
     });
     
-    // Add selected class to the clicked item
+    // add selected class to the selected item
     document.querySelectorAll('.subdistrict-item').forEach(item => {
         const itemText = item.querySelector('span')?.textContent || "";
         if (itemText === station) {
@@ -1200,38 +1142,39 @@ function selectSubdistrict(district, station) {
         }
     });
     
-    // Find the station in the Garda stations data
+    // look for the station in the Garda stations data
     const stationData = gardaStations.features.find(s => {
         const stationName = s.properties.Station || "";
         return stationName === station || safeIncludes(stationName, station) || safeIncludes(station, stationName);
     });
     
     if (stationData && stationData.geometry && stationData.geometry.coordinates) {
-        // Zoom to the station
+        // zoom in a bit to the station
         map.setView([stationData.geometry.coordinates[1], stationData.geometry.coordinates[0]], 15);
         
-        // Open the popup for this station
+        // popup for station
         const marker = subdistrictLayers[station];
         if (marker) {
             marker.openPopup();
         }
     }
     
-    // Update the data panel to show station details
+    // have data panel show station info
     updateStationDataPanel(district, station, stationData);
 }
 
 /**
- * Update the data panel with station info
- * @param {string} district - The district name
- * @param {string} station - The station name
- * @param {Object} stationData - The station GeoJSON feature
+ * update data panel with station info
+ * @param {string} district 
+ * @param {string} station 
+ * @param {Object} stationData 
  */
 function updateStationDataPanel(district, station, stationData) {
-    // Get crime level (check manual overrides first)
+    console.log(`Updating data panel for station: ${station} in district: ${district}`);
+    // find crime level (but check manual overrides first cuz central dublin needs to show :) )
     let crimeLevel = heatData[district][station] || 'average';
     
-    // Check for manual override
+    //  manual override if earlier code dosnt work
     for (const manualStation in manualDistrictOverrides) {
         if (normalizeDistrictName(manualStation) === normalizeDistrictName(station) ||
             normalizeDistrictName(station).includes(normalizeDistrictName(manualStation)) ||
@@ -1242,7 +1185,7 @@ function updateStationDataPanel(district, station, stationData) {
     }
     
     if (!stationData) {
-        // If we don't have detailed data, show a basic panel
+        //  basic panel if no station info
         dataContent.innerHTML = `
             <h2 class="data-title">
                 ${station} Garda Station
@@ -1266,7 +1209,7 @@ function updateStationDataPanel(district, station, stationData) {
             </div>
         `;
     } else {
-        // Show detailed station information
+        // station info
         dataContent.innerHTML = `
             <h2 class="data-title">
                 ${station} Garda Station
@@ -1295,17 +1238,18 @@ function updateStationDataPanel(district, station, stationData) {
         `;
     }
     
-    // Add event listener to the close button
+   
     document.getElementById('close-subdistrict').addEventListener('click', function() {
-        // Reset subdistrict selection but keep district selected
+        console.log('Closing subdistrict');
+        // Reset selected subdistrict
         selectedSubdistrict = null;
         
-        // Remove selected class from subdistrict items
+
         document.querySelectorAll('.subdistrict-item').forEach(item => {
             item.classList.remove('selected');
         });
         
-        // Update data panel back to district view
+        // go back back to district view
         const feature = districtBoundaries.features.find(f => 
             f.properties?.matchedDistrict === district || f.properties?.Name === district
         );
