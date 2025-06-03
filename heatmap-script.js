@@ -154,8 +154,9 @@ function updateDataPanel(feature) {
         return;
     }
     
-    // crime level 
-    let crimeLevel = feature?.properties?.crimeLevel || 'average';
+    // crime level
+    console.log("property crime level", feature?.properties);
+    let crimeLevel = feature?.properties?.crimeLevel || ''/*'average'*/;
     
     // look for for manual override
     /*for (const manualDistrict in manualDistrictOverrides) {
@@ -504,7 +505,7 @@ function initializeMap() {
         };
         infoControl.update = function(props) {
             this._div.innerHTML = '<h4>Dublin Crime Levels</h4>' + 
-                (props ? `<b>${props.matchedDistrict || props.Name || props.District_N}</b><br/>${props.crimeLevel || 'average'} crime` : 'Hover over a district');
+                (props ? `<b>${props.matchedDistrict || props.Name || props.District_N}</b><br/>${props.crimeLevel ? props.crimeLevel + " crime" : 'no crime data available'}` : 'Hover over a district');
         };
         infoControl.addTo(map);
         addChoroplethLegend();
@@ -538,7 +539,7 @@ function addChoroplethLegend() {
 
 
 function getDistrictStyle(feature) {
-    const crimeLevel = feature.properties.crimeLevel || 'average';
+    const crimeLevel = feature.properties.crimeLevel || ''/*'average'*/;
     return {
         fillColor: crimeColorScale[crimeLevel],
         weight: 2,
@@ -742,7 +743,7 @@ function processHeatData() {
         }
 
         if (!matchedDistrict) {
-            feature.properties.crimeLevel = 'average';
+            feature.properties.crimeLevel = null;
             feature.properties.matchedDistrict = null;
             return;
         }
@@ -968,7 +969,7 @@ function renderGardaStations() {
         }
         
         const stationName = station.properties.Station || "Unnamed Station";
-        let crimeLevel = 'average'; 
+        let crimeLevel = null;
         let districtName = null;
         
         // look for manual override first (added later cuz I could not get it to work last minute :( ))
@@ -1027,7 +1028,7 @@ function renderGardaStations() {
                     <p style="margin-top: 8px;">Phone: ${station.properties.Phone || "N/A"}</p>
                     <div style="margin-top: 8px; display: flex; align-items: center;">
                         <div style="width: 12px; height: 12px; background-color: ${crimeColorScale[crimeLevel]}; margin-right: 8px; border-radius: 50%;"></div>
-                        <div>Crime Level: ${crimeLevel.charAt(0).toUpperCase() + crimeLevel.slice(1)}</div>
+                        <div>Crime Level: ${crimeLevel?.charAt(0).toUpperCase() + crimeLevel?.slice(1)}</div>
                     </div>
                     ${districtName ? `<p style="margin-top: 8px;">District: ${districtName}</p>` : ''}
                 </div>
