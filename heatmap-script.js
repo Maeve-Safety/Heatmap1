@@ -320,8 +320,12 @@ console.log('crime level:', crimeLevel);
         ${nearestStationsHTML}
     `;
 
+    document.getElementsByClassName('map-legend')[0].style.top = "-450px";
+
     document.getElementById('close-district').addEventListener('click', function() {
         resetMap();
+        document.getElementsByClassName('map-legend')[0].style.top = "";
+
     });
 }/**
  * look for the nearest Garda stations to a district
