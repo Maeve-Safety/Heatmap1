@@ -226,10 +226,12 @@ input[type="checkbox"] {
     height: 100%;
     background: white;
     display: none;
+    z-index: 1;
 }
 
 .content-panel.active {
     display: block;
+    z-index: 2;
 }
 
 #map-panel {

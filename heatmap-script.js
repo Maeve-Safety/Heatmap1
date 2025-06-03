@@ -292,6 +292,7 @@ console.log('crime level:', crimeLevel);
     }
     
     // update the data panel content
+    console.log("update data-panel content");
     dataContent.innerHTML = `
         <h2 class="data-title">
             ${selectedDistrict}
@@ -317,7 +318,7 @@ console.log('crime level:', crimeLevel);
         ${stationsListHTML}
         ${nearestStationsHTML}
     `;
-    
+
     document.getElementById('close-district').addEventListener('click', function() {
         resetMap();
     });
